@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import { CompletedTasks } from "./components/Helper";
 import { PendingTasks } from "./components/Helper";
@@ -16,6 +16,17 @@ function App() {
         const newList = toDos.filter((task) => task.id !== id);
         setTodos(newList);
     };
+
+     // Load todos from local storage when the component mounts
+     useEffect(() => {
+        const storedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+        setTodos(storedTodos);
+    }, []);
+
+    // Save todos to local storage whenever they change
+    useEffect(() => {
+        localStorage.setItem("todos", JSON.stringify(toDos));
+    }, [toDos]);
 
     return (
         <div className="app">
@@ -40,9 +51,6 @@ function App() {
                     onClick={() => {
                         setTodo("");
                         const regex = /^[^\s+\W][\w\W\s+]{3,29}$/gim;
-                        /*to validate the input text. 
-                        It checks if the text contains 3 to 30 characters 
-                        and starts with a non-space, non-special character.*/
                         if (regex.test(toDo.trim())) {
                             const findIndex = toDos.find((elem) => elem.text.toLowerCase() === toDo.toLowerCase());
                             if (findIndex) {
@@ -72,9 +80,6 @@ function App() {
                 <div className="right">
                     <code style={{ color: `${30 - toDo.length < 27 && 30 - toDo.length >= 0 ? "white" : "red"}` }}>
                         {30 - toDo.length < 30 ? 30 - toDo.length + "/30" : ""}
-                        {/* calculates the remaining characters and changes the text color to white 
-                    if the character count is within the limit (27 characters) 
-                    and red if it exceeds the limit (30 characters) */}
                     </code>
                 </div>
             </div>
@@ -119,24 +124,27 @@ function App() {
                 })}
             </div>
 
-            <div className="flex-items" style={{ display: "inline-flex" }}>
+            <div className="flex-items">
                 <div className="list-task">
                     <h2 style={{ marginTop: "10px" }}>
                         ✅ Completed Tasks (<CompletedTasks ToDo={toDos} />)
                     </h2>
-                    {toDos.map((obj) =>
-                        obj.status ? (
-                            <div key={obj.id}>
-                                <div className="left1">
-                                    <p>
-                                        Completed : {obj.completed}
-                                        <br />
-                                        Task : {obj.text}
-                                    </p>
+                    {toDos.map((obj) => {
+                        if (obj.status) {
+                            return (
+                                <div>
+                                    <div className="left1">
+                                        <p>
+                                            Completed : {obj.completed}
+                                            <br />
+                                            Task : {obj.text}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : null
-                    )}
+                            );
+                        }
+                        return null;
+                    })}
                 </div>
 
                 <div>
@@ -144,19 +152,22 @@ function App() {
                         <h2 style={{ marginTop: "10px" }}>
                             ⌛ Pending Tasks (<PendingTasks ToDo={toDos} />)
                         </h2>
-                        {toDos.map((obj) =>
-                            !obj.status ? (
-                                <div key={obj.id}>
-                                    <div className="left2">
-                                        <p>
-                                            Pending : {obj.added}
-                                            <br />
-                                            Task : {obj.text}
-                                        </p>
+                        {toDos.map((obj) => {
+                            if (obj.status === false) {
+                                return (
+                                    <div>
+                                        <div className="left2">
+                                            <p>
+                                                Pending : {obj.added}
+                                                <br />
+                                                Task : {obj.text}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            ) : null
-                        )}
+                                );
+                            }
+                            return null;
+                        })}
                     </div>
                 </div>
 
